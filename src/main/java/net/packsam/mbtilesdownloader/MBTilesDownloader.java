@@ -18,6 +18,9 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.sqlite.JDBC;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -308,7 +311,7 @@ public class MBTilesDownloader {
                     if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         response.getEntity().writeTo(baos);
-                        image = baos.toByteArray();
+                        image = jpgBytesToPngBytes(baos.toByteArray());
                         IOUtils.closeQuietly(baos);
                     } else {
                         // wait shortly for server to create tile
@@ -356,6 +359,20 @@ public class MBTilesDownloader {
 
         return tile;
     }
+
+    private static byte[] jpgBytesToPngBytes(byte[] jpgBytes) throws IOException {
+        //create InputStream for ImageIO using jpg byte[]
+        ByteArrayInputStream bais = new ByteArrayInputStream(jpgBytes);
+        //read jpg bytes as an image
+        BufferedImage bufferedImage = ImageIO.read(bais);
+        //create OutputStream to write prepaired png bytes
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        //write image as png bytes
+        ImageIO.write(bufferedImage, "png", baos);
+        //convert OutputStream to a byte[]
+        return baos.toByteArray();
+    }
+
 
     /**
      * Creates the tiles mapper with the given class name.
